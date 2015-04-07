@@ -1,285 +1,71 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-    "http://www.w3.org/TR/html4/strict.dtd">
+<!doctype html>
 <html>
-<head>
-<title>Get Lat Lon - find the latitude and longitude of a point on a map</title>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-<!--
-Undocumented feature: www.getlatlon.com/?PLACE zooms straight to that place
--->
-<style type="text/css">
-body {
-    margin: 0;
-    margin-bottom: 3em;
-    padding: 0;
-    font-family: "Gill sans", sans-serif;
-    background-color: #fff;
-    color: #000;
-}
-div#hd {
-    text-align: center;
-    border-bottom: 2px solid black;
-}
-div#hd h1 {
-    margin-bottom: 0;
-    font-size: 1.5em;
-}
-div#ft {
-    border-top: 2px solid black;
-}
-div#ft p {
-    width: 500px;
-    margin: 1em auto;
-}
-p#builtby {
-    font-size: 0.8em;
-    text-align: right;
-    color: #666;
-}
-p#code {
-    font-size: 0.8em;
-    text-align: right;
-    color: #666;
-}
-div#bd {
-    position: relative;
-}
-div#gmap {
-    width: 100%;
-    height: 400px; /* If you change this don't forget to change the crosshair position to match */
-}
-div#crosshair {
-    position: absolute;
-    top: 192px;
-    height: 19px;
-    width: 19px;
-    left: 50%;
-    margin-left: -8px;
-    display: block;
-    background: url(crosshair.gif);
-    background-position: center center;
-    background-repeat: no-repeat;
-}
-</style>
-<script src="http://www.google.com/jsapi?key=ABQIAAAAsr9ctZeEunPDrlxJGu21iBTlt8xf3s10eGJdw9dwSKJl_q8e1hSlA1eYXwUjjNs-vI9MwA4wHK1-xw" type="text/javascript">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Latlon by ozkanarslan</title>
 
-</script>
-<script type="text/javascript">
-google.load('maps', '2'); // Load version 2 of the Maps API
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Latlon</h1>
+        <p>get lat lon</p>
+
+        <p class="view"><a href="https://github.com/ozkanarslan/latlon">View the Project on GitHub <small>ozkanarslan/latlon</small></a></p>
 
 
-function timezoneLoaded(obj) {
-    var timezone = obj.timezoneId;
-    if (!timezone) {
-        return;
-    }
-    document.getElementById('timezone').innerHTML = timezone;
-    document.getElementById('timezonep').style.display = 'block';
-    // Find out what time it is there
-    var s = document.createElement('script');
-    s.src = "http://json-time.appspot.com/time.json?callback=timeLoaded&tz=" + timezone;
-    s.type = 'text/javascript';
-    document.getElementsByTagName('head')[0].appendChild(s);
-}
+        <ul>
+          <li><a href="https://github.com/ozkanarslan/latlon/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/ozkanarslan/latlon/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/ozkanarslan/latlon">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
 
-function timeLoaded(obj) {
-    if (obj.datetime) {
-        document.getElementById('datetime').innerHTML = obj.datetime;
-        document.getElementById('datetimep').style.display = 'block';
-    }
-}
+<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
 
-function updateLatLonFields(lat, lon) {
-    lat = lat.toFixed(5);
-    lon = lon.toFixed(5);
-    document.getElementById("latlon").innerHTML = lat + ', ' + lon;
-    document.getElementById("wkt").innerHTML = 'POINT('+lon+' '+lat +')';
-    document.getElementById("geojson").innerHTML = '{ "type": "Point", "coordinates": [' + [lon, lat] + '] }';
-    document.getElementById("wikipedia").innerHTML = '{{Coord|' + lat + '|' + lon + '|display=title}}';
-}
+<pre><code>$ cd your_repo_root/repo_name
+$ git fetch origin
+$ git checkout gh-pages
+</code></pre>
 
-function showMap() {
-    window.gmap = new google.maps.Map2(document.getElementById('gmap'));
-    gmap.addControl(new google.maps.LargeMapControl());
-    gmap.addControl(new google.maps.MapTypeControl());
-    gmap.enableContinuousZoom();
-    gmap.enableScrollWheelZoom();
-    var timer = null;
-    google.maps.Event.addListener(gmap, "move", function() {
-        var center = gmap.getCenter();
-        updateLatLonFields(center.lat(), center.lng());
-        // Wait a second, then figure out the timezone
-        if (timer) {
-            clearTimeout(timer);
-            timer = null;
-        }
-        timer = setTimeout(function() {
-            document.getElementById('timezonep').style.display = 'none';
-            document.getElementById('datetimep').style.display = 'none';
-            // Look up the timezone using geonames
-            var s = document.createElement('script');
-            s.type = 'text/javascript';
-            s.src = "http://ws.geonames.org/timezoneJSON?lat=" + center.lat() +
-                "&lng=" + center.lng() + "&callback=timezoneLoaded";
-            document.getElementsByTagName("head")[0].appendChild(s);
-        }, 1500);
-    });
-    google.maps.Event.addListener(gmap, "zoomend", function(oldZoom, newZoom) {
-        document.getElementById("zoom").innerHTML = newZoom;
-    });
-    google.maps.Event.addDomListener(document.getElementById('crosshair'),
-        'dblclick', function() {
-            gmap.zoomIn();
-        }
-    );
+<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
 
-    /* HAITI */
+<h3>
+<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
 
-    getOsmUrl = function (a,b,c) {
-        var url = 'http://tile.openstreetmap.org/' + b + "/" + a.x + "/" + a.y + ".png";
-        return url;
-    }
-    var copycol1 = new GCopyrightCollection("");
-    var copy1 = new GCopyright(1, new GLatLngBounds(new GLatLng(-90,-180),new GLatLng(90,180)), 0, "openstreetmap.org");
-    copycol1.addCopyright(copy1);
-    var osm = new GTileLayer(copycol1,1,17);
-    osm.myBaseURL = "http://tile.openstreetmap.org/";
-    osm.getTileUrl = getOsmUrl;
-    osm.isPng = function () { return true;}
-    osm.getOpacity = function() {return 1.0;}
-    var osm_map = new GMapType([osm], G_SATELLITE_MAP.getProjection(), "OSM", G_SATELLITE_MAP);
-    gmap.addMapType(osm_map);
-    gmap.setMapType(osm_map);
+<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
 
+<h3>
+<a id="rather-drive-stick" class="anchor" href="#rather-drive-stick" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
 
-    getHaitiUrl = function (a,b,c) {
-        var url = 'http://live.openstreetmap.nl/haiti/' + b + "/" + a.x + "/" + a.y + ".png";
-        return url;
-    }
-    var copycol = new GCopyrightCollection("");
-    var copy = new GCopyright(1, new GLatLngBounds(new GLatLng(-90,-180),new GLatLng(90,180)), 0, "haiti.openstreetmap.nl");
-    copycol.addCopyright(copy);
-    var haiti = new GTileLayer(copycol,1,17);
-    haiti.myBaseURL = "http://tile.openstreetmap.org/";
-    haiti.getTileUrl = getHaitiUrl;
-    haiti.isPng = function () { return true;}
-    haiti.getOpacity = function() {return 1.0;}
-    var haiti_map = new GMapType([haiti], G_SATELLITE_MAP.getProjection(), "OSM Haiti Live", G_SATELLITE_MAP);
-    gmap.addMapType(haiti_map);
-    //gmap.setMapType(haiti_map);
+<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
 
-    // Default view of the world
-    gmap.setCenter(
-        new google.maps.LatLng(18.547324589827422, -72.388916015625), 12
-    );
+<h3>
+<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
 
-    /* If we have a best-guess for the user's location based on their IP,
-       show a "zoom to my location" link */
-    if (google.loader.ClientLocation) {
-        var link = document.createElement('a');
-        link.onclick = function() {
-            gmap.setCenter(
-                new google.maps.LatLng(
-                    google.loader.ClientLocation.latitude,
-                    google.loader.ClientLocation.longitude
-                ), 8
-            );
-            return false;
-        }
-        link.href = '#'
-        link.appendChild(
-            document.createTextNode('Zoom to my location (by IP)')
-        );
-        var form = document.getElementById('geocodeForm');
-        var p = form.getElementsByTagName('p')[0];
-        p.appendChild(link);
-    }
+<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
 
+<h3>
+<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
 
-    // Set up Geocoder
-    window.geocoder = new google.maps.ClientGeocoder();
-
-    // If query string was provided, geocode it
-    var bits = window.location.href.split('?');
-    if (bits[1]) {
-        var location = decodeURI(bits[1]);
-        document.getElementById('geocodeInput').value = location;
-        geocode(location);
-    }
-
-    // Set up the form
-    var geocodeForm = document.getElementById('geocodeForm');
-    geocodeForm.onsubmit = function() {
-        geocode(document.getElementById('geocodeInput').value);
-        return false;
-    }
-}
-
-var accuracyToZoomLevel = [
-    1,  // 0 - Unknown location
-    5,  // 1 - Country
-    6,  // 2 - Region (state, province, prefecture, etc.)
-    8,  // 3 - Sub-region (county, municipality, etc.)
-    11, // 4 - Town (city, village)
-    13, // 5 - Post code (zip code)
-    15, // 6 - Street
-    16, // 7 - Intersection
-    17, // 8 - Address
-    17  // 9 - Premise
-];
-
-function geocodeComplete(result) {
-    if (result.Status.code != 200) {
-        alert('Could not geocode "' + result.name + '"');
-        return;
-    }
-    var placemark = result.Placemark[0]; // Only use first result
-    var accuracy = placemark.AddressDetails.Accuracy;
-    var zoomLevel = accuracyToZoomLevel[accuracy] || 1;
-    var lon = placemark.Point.coordinates[0];
-    var lat = placemark.Point.coordinates[1];
-    gmap.setCenter(new google.maps.LatLng(lat, lon), zoomLevel);
-}
-
-function geocode(location) {
-    geocoder.getLocations(location, geocodeComplete);
-}
-
-google.setOnLoadCallback(showMap);
-</script>
-</head>
-<body>
-    <div id="hd">
-
-        <h1>Get Lat Lon</h1>
-        <p>Find the latitude and longitude of a point on a map.</p>
-        <form action="http://maps.google.com/maps" id="geocodeForm">
-            <p>
-                <label for="geocodeInput">Place name: </label>
-                <input type="text" name="q" id="geocodeInput">
-                <!-- "Accessible" version of Google Maps: -->
-
-                <input type="hidden" name="output" value="html">
-                <input type="submit" value="Zoom to place">
-            </p>
-        </form>
+<p>Having trouble with Pages? Check out the documentation at <a href="https://help.github.com/pages">https://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/ozkanarslan">ozkanarslan</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
-    <div id="bd">
-        <div id="gmap"></div>
-        <div id="crosshair"></div>
-    </div>
-
-    <div id="ft">
-        <p><strong>Latitude, Longitude:</strong> <span id="latlon"></span></p>
-        <p><strong>WKT:</strong> <span id="wkt"></span></p>
-        <p><strong>Google Maps zoom level:</strong> <span id="zoom"></span></p>
-        <p><strong>GeoJSON:</strong> <span id="geojson"></span></p>
-        <p><strong>Wikipedia:</strong> <span id="wikipedia"></span></p>
-        <p id="timezonep" style="display: none"><strong>Timezone:</strong> <span id="timezone"></span></p>
-        <p id="datetimep" style="display: none"><strong>Local time:</strong> <span id="datetime"></span></p>
-        <p id="builtby">Built by <a href="http://simonwillison.net/2007/Oct/12/latlon/">Simon Willison</a><br>... hacked for haiti by <a href="http://dbsgeo.com">Dane Springmeyer</a></p>
-        <p id="code">code at <a href="https://github.com/springmeyer/latlon">github</a></p>
-    </div>
-
-</body>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
 </html>
